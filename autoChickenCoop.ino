@@ -1,4 +1,5 @@
-#include <DS3231.h>
+#include <DS1307RTC.h>
+#include <TimeLib.h>
 #include <Wire.h>
 #include <Servo.h>
 
@@ -28,7 +29,7 @@ unsigned long previousMillisLed = 0;
 unsigned long previousMillisPrint = 0;
 unsigned long previousButtonPush = 0;
 
-DS3231 Clock;
+tmElements_t tm;
 
 void setup() {
   // set the digital pin as output:
@@ -38,24 +39,45 @@ void setup() {
 
   Wire.begin();
   Serial.begin(9600);
+  while (!Serial) ; // wait for Arduino Serial Monitor
+  delay(200);
   Serial.print("Starting up at time: ");
   printTime();
 
   myServo.attach(3); // attaches the servo on pin 9 to the servo object
 }
 
+void print2digits(int number) {
+  if (number >= 0 && number < 10) {
+    Serial.write('0');
+  }
+  Serial.print(number);
+}
+
 void printTime() {
-  Serial.print(Clock.getYear(), DEC);
-  Serial.print("-");
-  Serial.print(Clock.getMonth(Century), DEC);
-  Serial.print("-");
-  Serial.print(Clock.getDate(), DEC);
-  Serial.print(" ");
-  Serial.print(Clock.getHour(h12, pm_time), DEC); //24-hr
-  Serial.print(":");
-  Serial.print(Clock.getMinute(), DEC);
-  Serial.print(":");
-  Serial.println(Clock.getSecond(), DEC);
+  if (RTC.read(tm)) {
+    print2digits(tm.Hour);
+    Serial.write(':');
+    print2digits(tm.Minute);
+    Serial.write(':');
+    print2digits(tm.Second);
+    Serial.print(", Date (D/M/Y) = ");
+    Serial.print(tm.Day);
+    Serial.write('/');
+    Serial.print(tm.Month);
+    Serial.write('/');
+    Serial.print(tmYearToCalendar(tm.Year));
+    Serial.println();
+  } else {
+    if (RTC.chipPresent()) {
+      Serial.println("The DS1307 is stopped.  Please run the SetTime");
+      Serial.println("example to initialize the time and begin running.");
+      Serial.println();
+    } else {
+      Serial.println("DS1307 read error!  Please check the circuitry.");
+      Serial.println();
+    }
+  }
 }
 
 void executeSleep(void func (void), unsigned long& previousMillis, const long& interval) {
@@ -90,11 +112,11 @@ void blink() {
 
 void switchServo() {
   if (isOpen) {
-    Serial.println("Opening server");
+    Serial.println("Opening servo");
     myServo.write(openAngle);
   }
   else {
-    Serial.println("Closing server");
+    Serial.println("Closing servo");
     myServo.write(closedAngle);
   }
   isOpen = !isOpen;
