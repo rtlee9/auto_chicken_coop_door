@@ -6,6 +6,8 @@
 
 const int ledPin =  LED_BUILTIN;// the number of the LED pi
 bool ledState = false;             // ledState used to set the LED
+const int BUTTON_PIN = 2;
+const int SERVO_PIN = 3;
 
 // servo initi
 Servo myServo;  // create a servo object
@@ -18,11 +20,11 @@ const int switchDelay = 3000;
 
 // timing intervals
 const long blinkInterval = 1000;
-const long printInterval = 10000;
+const long printInterval = 50000;
 
 // timing constants
 bool Century = true;
-bool h12 = true; 
+bool h12 = true;
 bool pm_time = true;
 
 // keep track of last time things happened (for time delay)
@@ -35,12 +37,17 @@ tmElements_t tm;
 Dusk2Dawn sunTracker(37.4852, -122.2364, -8);
 int sunrise;
 int sunset;
+const bool dst = true;  // make sure if you re-sync the RTC outside of DST then you set this to false
+
+// track changes in day light
+bool isDay;
+bool wasDay;
 
 void setup() {
   // set pins
   pinMode(ledPin, OUTPUT);
-  pinMode(2, INPUT);
-  myServo.attach(3); // attaches the servo on pin 9 to the servo object
+  pinMode(BUTTON_PIN, INPUT);
+  myServo.attach(SERVO_PIN); // attaches the servo on pin 9 to the servo object
 
   // initialize stuff
   Wire.begin();
@@ -51,16 +58,32 @@ void setup() {
   // print start up time
   Serial.print("Starting up at time: ");
   printTime();
-  
+
   // get sunrise and sunset
   RTC.read(tm);
-  // TODO: get bool daylightSavings based on today's date
-  sunset = sunTracker.sunset(tmYearToCalendar(tm.Year), tm.Month, tm.Day, false);
-  sunrise = sunTracker.sunrise(tmYearToCalendar(tm.Year), tm.Month, tm.Day, false);
+  sunset = sunTracker.sunset(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
+  sunrise = sunTracker.sunrise(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
+  isDay = isDayNow();
+  wasDay = isDay;
   Serial.print("Sunrise is at ");
   Serial.print(sunrise);
   Serial.print(" today and sunset is at ");
   Serial.println(sunset);
+  if (isDay) {
+    Serial.println("It is currently day time");
+  } else {
+    Serial.println("It is currently night time");
+  }
+}
+
+bool isDayNow() {
+  RTC.read(tm);
+  int secondsTime = int(tm.Hour) * 60 + int(tm.Minute);
+  Serial.println(tm.Hour);
+  Serial.println(tm.Minute);
+  Serial.println(tm.Second);
+  Serial.println(secondsTime);
+  return (secondsTime > sunrise & secondsTime <= sunset);
 }
 
 void print2digits(int number) {
@@ -107,7 +130,7 @@ void executeSleep(void func (void), unsigned long& previousMillis, const long& i
   if (currentMillis - previousMillis < interval) {
     return;
   }
-  
+
   // save the last time you executed
   previousMillis = currentMillis;
   func();
@@ -137,8 +160,12 @@ void switchServo() {
 }
 
 void loop() {
-  switchState = digitalRead(2);
+  if (isDay != wasDay) {
+    Serial.println("Change in daylight");
+  }
 
+  // manual override if button is pushed
+  switchState = digitalRead(BUTTON_PIN);
   if (switchState) {
     executeSleep(switchServo, previousButtonPush, switchDelay);
   }
