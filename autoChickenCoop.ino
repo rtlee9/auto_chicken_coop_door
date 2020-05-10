@@ -4,7 +4,7 @@
 #include <Wire.h>
 #include <Servo.h>
 
-const int ledPin =  LED_BUILTIN;// the number of the LED pi
+const int LED_PIN =  LED_BUILTIN;// the number of the LED pi
 bool ledState = false;             // ledState used to set the LED
 const int BUTTON_PIN = 2;
 const int SERVO_PIN = 3;
@@ -15,11 +15,12 @@ int angle;   // variable to hold the angle for the servo motor
 bool switchState;
 bool isOpen;
 const int openAngle = 165;
-const int closedAngle = 0;
-const int switchDelay = 3000;
+const int closeAngle = 0;
+const int switchDelay = 5000;
 
 // timing intervals
-const long blinkInterval = 1000;
+const long slowBlinkInterval = 500;
+const long fastBlinkInterval = 200;
 const long printInterval = 50000;
 
 // timing constants
@@ -45,7 +46,7 @@ bool wasDay;
 
 void setup() {
     // set pins
-    pinMode(ledPin, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT);
     myServo.attach(SERVO_PIN); // attaches the servo on pin 9 to the servo object
 
@@ -138,21 +139,29 @@ void blink() {
     ledState = !ledState;
 
     // set the LED with the ledState of the variable:
-    digitalWrite(ledPin, ledState);
+    digitalWrite(LED_PIN, ledState);
 }
 
 void closeDoor() {
-    // TODO: flash LED
+    const unsigned long startMillis = millis();
     Serial.println("Closing door");
-    myServo.write(closedAngle);
+    myServo.write(closeAngle);
     isOpen = !isOpen;
+    while (millis() < startMillis + switchDelay) {
+        executeSleep(blink, previousMillisLed, slowBlinkInterval);
+    }
+    digitalWrite(LED_PIN, false);
 }
 
 void openDoor() {
-    // TODO: flash LED
+    const unsigned long startMillis = millis();
     Serial.println("Opening door");
     myServo.write(openAngle);
     isOpen = !isOpen;
+    while (millis() < startMillis + switchDelay) {
+        executeSleep(blink, previousMillisLed, fastBlinkInterval);
+    }
+    digitalWrite(LED_PIN, false);
 }
 
 void switchDoor() {
@@ -182,6 +191,5 @@ void loop() {
         executeSleep(switchDoor, previousButtonPush, switchDelay);
     }
 
-    // executeSleep(blink, previousMillisLed, blinkInterval);
     executeSleep(printTime, previousMillisPrint, printInterval);
 }
