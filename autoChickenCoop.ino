@@ -191,5 +191,5 @@ void loop() {
         executeSleep(switchDoor, previousButtonPush, switchDelay);
     }
 
-    executeSleep(printTime, previousMillisPrint, printInterval);
+    // TODO: sleep
 }
