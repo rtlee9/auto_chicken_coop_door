@@ -79,10 +79,6 @@ void setup() {
 bool isDayNow() {
   RTC.read(tm);
   int secondsTime = int(tm.Hour) * 60 + int(tm.Minute);
-  Serial.println(tm.Hour);
-  Serial.println(tm.Minute);
-  Serial.println(tm.Second);
-  Serial.println(secondsTime);
   return (secondsTime > sunrise & secondsTime <= sunset);
 }
 
@@ -100,7 +96,7 @@ void printTime() {
     print2digits(tm.Minute);
     Serial.write(':');
     print2digits(tm.Second);
-    Serial.print(", Date (D/M/Y) = ");
+    Serial.print(", ");
     Serial.print(tm.Day);
     Serial.write('/');
     Serial.print(tm.Month);
