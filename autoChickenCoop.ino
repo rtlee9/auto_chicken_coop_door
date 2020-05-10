@@ -107,17 +107,15 @@ void printTime() {
         Serial.print(tm.Month);
         Serial.write('/');
         Serial.print(tmYearToCalendar(tm.Year));
-        if (verbose) {
-            int mt = getMinutesTimeOfDay(tm);
-            if (isDay) {
-                Serial.print(" (currently day time with ");
-                Serial.print((1440 + sunset - mt ) % 1440);
-                Serial.print(" minutes until sunset)");
-            } else {
-                Serial.print(" (currently night time with ");
-                Serial.print((1440 + sunrise - mt ) % 1440);
-                Serial.print(" minutes until sunrise)");
-            }
+        int mt = getMinutesTimeOfDay(tm);
+        if (isDay) {
+            Serial.print(" (currently day time with ");
+            Serial.print((1440 + sunset - mt ) % 1440);
+            Serial.print(" minutes until sunset)");
+        } else {
+            Serial.print(" (currently night time with ");
+            Serial.print((1440 + sunrise - mt ) % 1440);
+            Serial.print(" minutes until sunrise)");
         }
         Serial.println();
     } else {
