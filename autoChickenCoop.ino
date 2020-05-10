@@ -1,11 +1,13 @@
 #include <DS1307RTC.h>
+#include <Dusk2Dawn.h>
 #include <TimeLib.h>
 #include <Wire.h>
 #include <Servo.h>
 
-// constants won't change. Used here to set a pin number:
-const int ledPin =  LED_BUILTIN;// the number of the LED pin
+const int ledPin =  LED_BUILTIN;// the number of the LED pi
+bool ledState = false;             // ledState used to set the LED
 
+// servo initi
 Servo myServo;  // create a servo object
 int angle;   // variable to hold the angle for the servo motor
 bool switchState;
@@ -14,37 +16,51 @@ const int openAngle = 165;
 const int closedAngle = 0;
 const int switchDelay = 3000;
 
-// Variables will change:
-int ledState = LOW;             // ledState used to set the LED
-
-// constants won't change:
+// timing intervals
 const long blinkInterval = 1000;
 const long printInterval = 10000;
 
+// timing constants
 bool Century = true;
-bool h12 = true;
+bool h12 = true; 
 bool pm_time = true;
 
+// keep track of last time things happened (for time delay)
 unsigned long previousMillisLed = 0;
 unsigned long previousMillisPrint = 0;
 unsigned long previousButtonPush = 0;
 
+// clock stuff
 tmElements_t tm;
+Dusk2Dawn sunTracker(37.4852, -122.2364, -8);
+int sunrise;
+int sunset;
 
 void setup() {
-  // set the digital pin as output:
+  // set pins
   pinMode(ledPin, OUTPUT);
-    // declare the switch pin as an input
   pinMode(2, INPUT);
+  myServo.attach(3); // attaches the servo on pin 9 to the servo object
 
+  // initialize stuff
   Wire.begin();
   Serial.begin(9600);
   while (!Serial) ; // wait for Arduino Serial Monitor
   delay(200);
+
+  // print start up time
   Serial.print("Starting up at time: ");
   printTime();
-
-  myServo.attach(3); // attaches the servo on pin 9 to the servo object
+  
+  // get sunrise and sunset
+  RTC.read(tm);
+  // TODO: get bool daylightSavings based on today's date
+  sunset = sunTracker.sunset(tmYearToCalendar(tm.Year), tm.Month, tm.Day, false);
+  sunrise = sunTracker.sunrise(tmYearToCalendar(tm.Year), tm.Month, tm.Day, false);
+  Serial.print("Sunrise is at ");
+  Serial.print(sunrise);
+  Serial.print(" today and sunset is at ");
+  Serial.println(sunset);
 }
 
 void print2digits(int number) {
@@ -100,11 +116,7 @@ void executeSleep(void func (void), unsigned long& previousMillis, const long& i
 void blink() {
 
   // if the LED is off turn it on and vice-versa:
-  if (ledState == LOW) {
-    ledState = HIGH;
-  } else {
-    ledState = LOW;
-  }
+  ledState = !ledState;
 
   // set the LED with the ledState of the variable:
   digitalWrite(ledPin, ledState);
@@ -113,10 +125,12 @@ void blink() {
 void switchServo() {
   if (isOpen) {
     Serial.println("Opening servo");
+    // TODO: flash LED
     myServo.write(openAngle);
   }
   else {
     Serial.println("Closing servo");
+    // TODO: flash LED
     myServo.write(closedAngle);
   }
   isOpen = !isOpen;
