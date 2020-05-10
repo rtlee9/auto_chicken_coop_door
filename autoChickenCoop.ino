@@ -141,29 +141,45 @@ void blink() {
   digitalWrite(ledPin, ledState);
 }
 
-void switchServo() {
-  if (isOpen) {
-    Serial.println("Opening servo");
-    // TODO: flash LED
-    myServo.write(openAngle);
-  }
-  else {
-    Serial.println("Closing servo");
-    // TODO: flash LED
-    myServo.write(closedAngle);
-  }
+void closeDoor() {
+  // TODO: flash LED
+  Serial.println("Closing door");
+  myServo.write(closedAngle);
   isOpen = !isOpen;
 }
 
+void openDoor() {
+  // TODO: flash LED
+  Serial.println("Opening door");
+  myServo.write(openAngle);
+  isOpen = !isOpen;
+}
+
+void switchDoor() {
+  if (isOpen) {
+    openDoor();
+  }
+  else {
+    closeDoor();
+  }
+}
+
 void loop() {
-  if (isDay != wasDay) {
-    Serial.println("Change in daylight");
+  if (isDay && !wasDay) {
+    // it's now sunrise, need to open the door
+    Serial.print("It's now sunrise -- time to open the door: ");
+    printTime();
+    openDoor();
+  } else if (!isDay && wasDay) {
+    // it's now sunset, need to close the door
+    Serial.print("It's now sunset -- time to close the door: ");
+    closeDoor();
   }
 
   // manual override if button is pushed
   switchState = digitalRead(BUTTON_PIN);
   if (switchState) {
-    executeSleep(switchServo, previousButtonPush, switchDelay);
+    executeSleep(switchDoor, previousButtonPush, switchDelay);
   }
 
   // executeSleep(blink, previousMillisLed, blinkInterval);
