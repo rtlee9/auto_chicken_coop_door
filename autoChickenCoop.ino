@@ -14,8 +14,8 @@ Servo myServo;  // create a servo object
 int angle;   // variable to hold the angle for the servo motor
 bool switchState;
 bool isOpen;
-const int openAngle = 165;
-const int closeAngle = 0;
+const int openAngle = 0;
+const int closeAngle = 165;
 const int switchDelay = 5000;
 
 // timing intervals
