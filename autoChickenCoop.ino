@@ -4,6 +4,10 @@
 #include <Wire.h>
 #include <Servo.h>
 
+// logging
+const bool verbose = false;
+
+// set pint constants
 const int LED_PIN =  LED_BUILTIN;// the number of the LED pi
 bool ledState = false;             // ledState used to set the LED
 const int BUTTON_PIN = 2;
@@ -21,7 +25,7 @@ const int switchDelay = 5000;
 // timing intervals
 const long slowBlinkInterval = 500;
 const long fastBlinkInterval = 200;
-const long printInterval = 50000;
+const long printInterval = 30000;
 
 // timing constants
 bool Century = true;
@@ -56,31 +60,31 @@ void setup() {
     while (!Serial) ; // wait for Arduino Serial Monitor
     delay(200);
 
-    // print start up time
-    Serial.print("Starting up at time: ");
-    printTime();
-
     // get sunrise and sunset
     RTC.read(tm);
     sunset = sunTracker.sunset(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
     sunrise = sunTracker.sunrise(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
     isDay = isDayNow();
     wasDay = isDay;
-    Serial.print("Sunrise is at ");
+    Serial.print("Sunrise is ");
     Serial.print(sunrise);
-    Serial.print(" today and sunset is at ");
-    Serial.println(sunset);
-    if (isDay) {
-        Serial.println("It is currently day time");
-    } else {
-        Serial.println("It is currently night time");
-    }
+    Serial.print(" minutes past midnight today and sunset is ");
+    Serial.print(sunset);
+    Serial.println(" minutes past midnight today.");
+
+    // print start up time
+    Serial.print("Starting up at time: ");
+    printTime();
+}
+
+int getMinutesTimeOfDay(tmElements_t tm) {
+    return int(tm.Hour) * 60 + int(tm.Minute);
 }
 
 bool isDayNow() {
     RTC.read(tm);
-    int secondsTime = int(tm.Hour) * 60 + int(tm.Minute);
-    return (secondsTime > sunrise & secondsTime <= sunset);
+    int minutesTimeOfDay = getMinutesTimeOfDay(tm);
+    return (minutesTimeOfDay > sunrise & minutesTimeOfDay <= sunset);
 }
 
 void print2digits(int number) {
@@ -103,6 +107,18 @@ void printTime() {
         Serial.print(tm.Month);
         Serial.write('/');
         Serial.print(tmYearToCalendar(tm.Year));
+        if (verbose) {
+            int mt = getMinutesTimeOfDay(tm);
+            if (isDay) {
+                Serial.print(" (currently day time with ");
+                Serial.print((1440 + sunset - mt ) % 1440);
+                Serial.print(" minutes until sunset)");
+            } else {
+                Serial.print(" (currently night time with ");
+                Serial.print((1440 + sunrise - mt ) % 1440);
+                Serial.print(" minutes until sunrise)");
+            }
+        }
         Serial.println();
     } else {
         if (RTC.chipPresent()) {
@@ -174,6 +190,7 @@ void switchDoor() {
 }
 
 void loop() {
+    isDay = isDayNow();
     if (isDay && !wasDay) {
         // it's now sunrise, need to open the door
         Serial.print("It's now sunrise -- time to open the door: ");
@@ -182,6 +199,7 @@ void loop() {
     } else if (!isDay && wasDay) {
         // it's now sunset, need to close the door
         Serial.print("It's now sunset -- time to close the door: ");
+        printTime();
         closeDoor();
     }
 
@@ -191,5 +209,10 @@ void loop() {
         executeSleep(switchDoor, previousButtonPush, switchDelay);
     }
 
-    // TODO: sleep
+    if (verbose) {
+        executeSleep(printTime, previousMillisPrint, printInterval);
+    }
+    // TODO: sleep if power savings would be significant
+
+    wasDay = isDay;
 }
