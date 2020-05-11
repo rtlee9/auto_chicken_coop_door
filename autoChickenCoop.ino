@@ -20,7 +20,7 @@ bool switchState;
 bool isOpen;
 const int openAngle = 0;
 const int closeAngle = 140;
-const int switchDelay = 5000;
+const int switchDelay = 3000;
 
 // timing intervals
 const long slowBlinkInterval = 500;
