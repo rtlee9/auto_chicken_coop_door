@@ -31,6 +31,7 @@ const long printInterval = 30000;
 bool Century = true;
 bool h12 = true;
 bool pm_time = true;
+const int sunsetOffset = 30;  // chickens can wander around until it's really dark out
 
 // keep track of last time things happened (for time delay)
 unsigned long previousMillisLed = 0;
@@ -84,7 +85,7 @@ int getMinutesTimeOfDay(tmElements_t tm) {
 bool isDayNow() {
     RTC.read(tm);
     int minutesTimeOfDay = getMinutesTimeOfDay(tm);
-    return (minutesTimeOfDay > sunrise & minutesTimeOfDay <= sunset);
+    return (minutesTimeOfDay > sunrise & minutesTimeOfDay <= sunset + sunsetOffset);
 }
 
 void print2digits(int number) {
