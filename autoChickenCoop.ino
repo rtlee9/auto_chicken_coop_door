@@ -13,7 +13,7 @@ bool ledState = false;             // ledState used to set the LED
 const int BUTTON_PIN = 2;
 const int SERVO_PIN = 3;
 
-// servo initi
+// servo init
 Servo myServo;  // create a servo object
 int angle;   // variable to hold the angle for the servo motor
 bool switchState;
@@ -23,8 +23,8 @@ const int closeAngle = 140;
 const int switchDelay = 3000;
 
 // timing intervals
-const long slowBlinkInterval = 500;
-const long fastBlinkInterval = 200;
+const long slowBlinkInterval = 300;
+const long fastBlinkInterval = 100;
 const long printInterval = 30000;
 
 // timing constants
