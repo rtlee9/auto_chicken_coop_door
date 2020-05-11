@@ -65,6 +65,7 @@ void setup() {
     // get sunrise and sunset
     RTC.read(tm);
     sunset = sunTracker.sunset(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
+    sunset += sunsetOffset;
     sunrise = sunTracker.sunrise(tmYearToCalendar(tm.Year), tm.Month, tm.Day, dst);
     isDay = isDayNow();
     wasDay = isDay;
@@ -86,7 +87,7 @@ int getMinutesTimeOfDay(tmElements_t tm) {
 bool isDayNow() {
     RTC.read(tm);
     int minutesTimeOfDay = getMinutesTimeOfDay(tm);
-    return (minutesTimeOfDay > sunrise & minutesTimeOfDay <= sunset + sunsetOffset);
+    return (minutesTimeOfDay > sunrise & minutesTimeOfDay <= sunset);
 }
 
 void print2digits(int number) {
