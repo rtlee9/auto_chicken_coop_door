@@ -19,7 +19,7 @@ int angle;   // variable to hold the angle for the servo motor
 bool switchState;
 bool isOpen;
 const int openAngle = 0;
-const int closeAngle = 165;
+const int closeAngle = 140;
 const int switchDelay = 5000;
 
 // timing intervals
