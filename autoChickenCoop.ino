@@ -32,6 +32,7 @@ bool Century = true;
 bool h12 = true;
 bool pm_time = true;
 const int sunsetOffset = 30;  // chickens can wander around until it's really dark out
+const int RTC_BOOT_DELAY = 1000;
 
 // keep track of last time things happened (for time delay)
 unsigned long previousMillisLed = 0;
@@ -59,7 +60,7 @@ void setup() {
     Wire.begin();
     Serial.begin(9600);
     while (!Serial) ; // wait for Arduino Serial Monitor
-    delay(200);
+    delay(RTC_BOOT_DELAY);
 
     // get sunrise and sunset
     RTC.read(tm);
