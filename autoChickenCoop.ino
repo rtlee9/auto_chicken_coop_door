@@ -32,7 +32,7 @@ bool Century = true;
 bool h12 = true;
 bool pm_time = true;
 const int sunsetOffset = 30;  // chickens can wander around until it's really dark out
-const int RTC_BOOT_DELAY = 1000;
+const int RTC_BOOT_DELAY = 2000;
 
 // keep track of last time things happened (for time delay)
 unsigned long previousMillisLed = 0;
