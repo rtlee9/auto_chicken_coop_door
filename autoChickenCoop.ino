@@ -78,6 +78,13 @@ void setup() {
     // print start up time
     Serial.print("Starting up at time: ");
     printTime();
+
+    // if restarted need to set door to the correct state
+    if (isDay) {
+        openDoor();
+    } else {
+        closeDoor();
+    }
 }
 
 int getMinutesTimeOfDay(tmElements_t tm) {
@@ -163,7 +170,7 @@ void closeDoor() {
     const unsigned long startMillis = millis();
     Serial.println("Closing door");
     myServo.write(closeAngle);
-    isOpen = !isOpen;
+    isOpen = false;
     while (millis() < startMillis + switchDelay) {
         executeSleep(blink, previousMillisLed, slowBlinkInterval);
     }
@@ -174,7 +181,7 @@ void openDoor() {
     const unsigned long startMillis = millis();
     Serial.println("Opening door");
     myServo.write(openAngle);
-    isOpen = !isOpen;
+    isOpen = true;
     while (millis() < startMillis + switchDelay) {
         executeSleep(blink, previousMillisLed, fastBlinkInterval);
     }
@@ -183,10 +190,10 @@ void openDoor() {
 
 void switchDoor() {
     if (isOpen) {
-        openDoor();
+        closeDoor();
     }
     else {
-        closeDoor();
+        openDoor();
     }
 }
 
